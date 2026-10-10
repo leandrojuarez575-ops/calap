@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AstroCal PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#1e1e2e">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="mobile-frame">
+    
+    <!-- PANTALLA DE AUTENTICACIÓN (LOGIN / REGISTRO) -->
+    <section id="auth-screen" class="screen active">
+      <div class="auth-container">
+        <div class="auth-header">
+          <h1>📅 AstroCal</h1>
+          <p>Tu calendario inteligente con clima e IA</p>
+        </div>
+        
+        <form id="auth-form" onsubmit="handleAuth(event)">
+          <div class="input-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="auth-email" placeholder="usuario@email.com" required>
+          </div>
+          <div class="input-group">
+            <label>Contraseña</label>
+            <input type="password" id="auth-password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" id="auth-btn" class="primary-btn">Iniciar Sesión</button>
+        </form>
+
+        <div class="auth-toggle" style="margin-top: 15px;">
+          <span id="auth-toggle-text">¿No tenés cuenta?</span>
+          <button type="button" id="toggle-auth-btn" onclick="toggleAuthMode()">Registrarse</button>
+        </div>
+
+        <button class="secondary-btn" onclick="entrarModoInvitado()" style="margin-top: 15px;">Modo Invitado (Uso Local)</button>
+      </div>
+    </section>
+
+    <!-- PANTALLA PRINCIPAL DE LA APP -->
+    <section id="app-screen" class="screen">
+      
+      <!-- Header Clima -->
+      <header class="app-header">
+        <div class="header-info">
+          <h2 id="city-name">Ubicación...</h2>
+          <p id="weather-desc">Cargando clima...</p>
+        </div>
+        <div class="header-temp" id="temp-display">--°C</div>
+      </header>
+
+      <!-- VISTA 1: CALENDARIO INTERACTIVO -->
+      <main id="view-calendar" class="view active">
+        <!-- Controles del Calendario -->
+        <div class="calendar-controls">
+          <button onclick="cambiarMes(-1)">❮</button>
+          <h3 id="month-year-label">Mes Año</h3>
+          <button onclick="cambiarMes(1)">❯</button>
+        </div>
+
+        <!-- Matriz del Calendario -->
+        <div class="calendar-grid-header">
+          <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+        </div>
+        <div id="calendar-days" class="calendar-days"></div>
+
+        <!-- Check-in Contextual de IA -->
+        <div class="card ia-card">
+          <div class="card-badge">Check-in de hoy (IA)</div>
+          <p id="ia-prompt">Analizando tu agenda y el tiempo...</p>
+          <div class="ia-actions">
+            <button onclick="responderCheckIn('Con energía 💪')">Con energía 💪</button>
+            <button onclick="responderCheckIn('Tranquilo 😌')">Tranquilo 😌</button>
+            <button onclick="responderCheckIn('Cansado 😴')">Cansado 😴</button>
+          </div>
+        </div>
+
+        <!-- Lista de Eventos del Día Seleccionado -->
+        <div class="card">
+          <div class="section-title">
+            <h4 id="selected-date-label">Eventos del día</h4>
+            <button class="btn-add" onclick="abrirModalEvento()">+ Nuevo</button>
+          </div>
+          <ul id="event-list" class="event-list"></ul>
+        </div>
+      </main>
+
+      <!-- VISTA 2: CONFIGURACIÓN Y PERFIL -->
+      <main id="view-settings" class="view">
+        <div class="card">
+          <h3>Perfil y Ajustes</h3>
+          <p id="user-status">Modo: Local / Invitado</p>
+          <hr>
+          <button class="primary-btn" onclick="solicitarNotificacionesPush()">🔔 Activar Notificaciones Push</button>
+          <button class="primary-btn" id="install-pwa-btn" style="display:none; margin-top:10px;">📲 Instalar PWA</button>
+          <button onclick="cambiarApiKey()" class="btn-config">⚙️ Configurar API Key</button>
+          <button class="danger-btn" onclick="cerrarSesion()" style="margin-top:15px;">Cerrar Sesión</button>
+        </div>
+      </main>
+
+      <!-- Barra de Navegación Inferior -->
+      <nav class="app-nav">
+        <button class="nav-btn active" onclick="cambiarVista('calendar', this)">📅 Calendario</button>
+        <button class="nav-btn" onclick="cambiarVista('settings', this)">⚙ Ajustes</button>
+      </nav>
+    </section>
+
+    <!-- MODAL PARA CREAR EVENTO -->
+    <div id="event-modal" class="modal">
+      <div class="modal-content">
+        <h3>Nuevo Evento</h3>
+        <input type="text" id="event-title" placeholder="Ej: Salir a correr" required>
+        <input type="time" id="event-time" value="18:00" required>
+        <div class="modal-buttons">
+          <button class="secondary-btn" onclick="cerrarModalEvento()">Cancelar</button>
+          <button class="primary-btn" onclick="guardarEvento()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
